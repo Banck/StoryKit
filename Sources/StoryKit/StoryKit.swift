@@ -24,6 +24,10 @@ public struct StoryKit {
             completion()
         }
     }
+
+    public static func clearCache() {
+        fileDownloader.cache.removeAllCachedResponses()
+    }
 }
 
 extension StoryKit {
