@@ -10,14 +10,15 @@ import SwiftUI
 struct ProgressView: View {
 
     var progress: Double
+	var color: Color
 
     var body: some View {
         GeometryReader { geo in
             Capsule()
-                .foregroundColor(.white.opacity(0.3))
+				.foregroundColor(color.opacity(0.3))
                 .overlay(
                     Capsule()
-                        .fill(.white)
+						.fill(color)
                         .frame(width: geo.size.width * min(progress, 1.0)),
                     alignment: .leading
                 )
@@ -28,7 +29,7 @@ struct ProgressView: View {
 #Preview {
     ZStack {
         Color.black
-        ProgressView(progress: 0.5)
+        ProgressView(progress: 0.5, color: .white)
             .frame(height: 2)
     }
 }

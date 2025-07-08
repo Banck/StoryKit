@@ -22,35 +22,59 @@ struct StoryView: View {
     }
 
     var body: some View {
-        contentView()
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .overlay(
-                progress()
-                    .padding(.top, (safeAreaInsets?.top ?? 0) + 8),
-                alignment: .top
-            )
-            .overlay(
-                Button {
-                    viewModel.didDismiss()
-                    presentation.wrappedValue.dismiss()
-                } label: {
-                    Image(systemName: "xmark")
-                        .font(.system(size: 24))
-                        .foregroundColor(.white)
-                        .frame(width: 48, height: 44)
-                        .padding(.top, (safeAreaInsets?.top ?? 0) + 18)
-                },
-                alignment: .topTrailing
-            )
-            .background(controls())
-            .background(Color(hex: "1A1A1A"))
-            .onAppear {
-                viewModel.viewDidAppear()
-            }
-            .onDisappear {
-                viewModel.viewDidDisappear()
-            }
+		ZStack {
+			overlayedContent()
+		}
+		.coordinateSpace(name: "StorySpace")
     }
+	
+	@ViewBuilder
+	func overlayedContent() -> some View {
+		contentView()
+			.frame(maxWidth: .infinity, maxHeight: .infinity)
+			.overlay(
+				GeometryReader { geo in
+					progress()
+						.onAppear {
+							let frame = geo.frame(in: .named("StorySpace"))
+							viewModel.progressFrame = frame
+						}
+						.animation(.linear, value: viewModel.progressColor)
+				}
+					.frame(height: 2)
+					.padding(.top, (safeAreaInsets?.top ?? 0) + 8),
+				alignment: .top
+			)
+			.overlay(
+				Button {
+					viewModel.didDismiss()
+					presentation.wrappedValue.dismiss()
+				} label: {
+					GeometryReader { geo in
+						Image(systemName: "xmark")
+							.font(.system(size: 24))
+							.foregroundColor(viewModel.closeColor)
+							.frame(width: 48, height: 44)
+							.onAppear {
+								let frame = geo.frame(in: .named("StorySpace"))
+								viewModel.closeFrame = frame
+							}
+							.animation(.linear, value: viewModel.closeColor)
+					}
+					.frame(width: 48, height: 44)
+					.padding(.top, (safeAreaInsets?.top ?? 0) + 18)
+				},
+				alignment: .topTrailing
+			)
+			.background(controls())
+			.background(Color(hex: "1A1A1A"))
+			.onAppear {
+				viewModel.viewDidAppear()
+			}
+			.onDisappear {
+				viewModel.viewDidDisappear()
+			}
+	}
 
     @ViewBuilder
     func contentView() -> some View {
@@ -92,7 +116,10 @@ struct StoryView: View {
     func progress() -> some View {
         HStack(spacing: 4) {
             ForEach(viewModel.story.pages.indices) { index in
-                ProgressView(progress: viewModel.progress(forPageIndex: index))
+				ProgressView(
+					progress: viewModel.progress(forPageIndex: index),
+					color: viewModel.progressColor
+				)
             }
         }
         .frame(height: 2)

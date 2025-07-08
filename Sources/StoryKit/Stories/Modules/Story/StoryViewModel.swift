@@ -24,6 +24,7 @@ class StoryViewModel: ObservableObject {
     @Published var currentPageIndex: Int = 0 {
         didSet {
             updateTimerStatus()
+			calculateColors()
         }
     }
     @Published var storyProgressSeconds: Double = 0
@@ -34,8 +35,32 @@ class StoryViewModel: ObservableObject {
     private var isHolded: Bool = false
     private var holdStartDate: Date?
     private var isOnTheScreen: Bool = false
+	
+	private let bgDetector = BackgroundDetector()
+	private var bgDetectorTask: Task<Void, Error>?
 
     @Published var isPagePaused: Bool = false
+	@Published var closeColor: Color = .white
+	@Published var progressColor: Color = .white
+	
+	var closeFrame: CGRect? {
+		didSet {
+			guard
+				let closeFrame,
+				closeFrame != oldValue
+			else { return }
+			calculateColors()
+		}
+	}
+	var progressFrame: CGRect? {
+		didSet {
+			guard
+				let progressFrame,
+				progressFrame != oldValue
+			else { return }
+			calculateColors()
+		}
+	}
 
     private var errorsCountInARow: Int = 0
 
@@ -144,11 +169,39 @@ class StoryViewModel: ObservableObject {
     func pageContentDidAppear() {
         pageShowStartDate = Date()
         updateTimerStatus()
+		calculateColors()
     }
 }
 
 // MARK: - Private methods
 private extension StoryViewModel {
+	
+	func calculateColors() {
+		guard
+			let closeFrame,
+			let progressFrame,
+			let pageData = self.pagesData[currentPageIndex].value
+		else { return }
+		let viewSize = UIScreen.main.bounds.size
+		bgDetectorTask?.cancel()
+		bgDetectorTask = Task { @MainActor [weak self] in
+			let closeBrightness = await bgDetector.detect(
+				from: pageData.contentType,
+				viewSize: viewSize,
+				croppedFrame: closeFrame
+			)
+			try Task.checkCancellation()
+			let progressBrightness = await bgDetector.detect(
+				from: pageData.contentType,
+				viewSize: viewSize,
+				croppedFrame: progressFrame
+			)
+			try Task.checkCancellation()
+			guard let self else { return }
+			closeColor = closeBrightness <= 0.5 ? Color.white : Color.black
+			progressColor = progressBrightness <= 0.5 ? Color.white : Color.black
+		}
+	}
 
     func preparePageData(at index: Int) {
         let page = story.pages[index]
