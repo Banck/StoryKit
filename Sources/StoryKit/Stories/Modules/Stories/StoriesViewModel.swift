@@ -19,6 +19,7 @@ class StoriesViewModel: ObservableObject {
     }
     var storiesViewModels: [StoryViewModel]
     var isDragging: Bool = false
+    var isScrolling: Bool = false
     @Published var isDismissing: Bool = false
     @Published var isAutoScrolling: Bool = false
     private var storyShowStartDate: Date?
@@ -54,10 +55,12 @@ class StoriesViewModel: ObservableObject {
     }
 
     func didStartSlideStories() {
+        isScrolling = true
         storiesViewModels.forEach { $0.isActive = false }
     }
 
     func didEndSlideStories(toIndex index: Int) {
+        isScrolling = false
         showStory(at: index, byAction: .slide)
     }
 

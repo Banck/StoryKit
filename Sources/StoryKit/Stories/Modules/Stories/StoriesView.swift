@@ -44,19 +44,20 @@ struct StoriesView: View {
                 .opacity(opacity)
         }
         .statusBarHidden(false)
-        .gesture(
+        .highPriorityGesture(
             DragGesture(minimumDistance: 25)
                 .onChanged { value in
-                    // enable only swipe to bottom when start dragging
-                    guard value.translation.height >= 0 || viewModel.isDragging else { return }
+                    // enable only swipe to bottom when start dragging and is not scrolling ScrollView
+                    guard (value.translation.height >= 0 || viewModel.isDragging) && !viewModel.isScrolling else { return }
                     viewModel.didChangeDragLocation()
                 }
                 .updating($dragTranslation) { value, state, transaction in
-                    // enable only swipe to bottom when start dragging
-                    guard value.translation.height >= 0 || viewModel.isDragging else { return }
+                    // enable only swipe to bottom when start dragging and is not scrolling ScrollView
+                    guard (value.translation.height >= 0 || viewModel.isDragging) && !viewModel.isScrolling else { return }
                     state = value.translation
                 }
                 .onEnded { value in
+                    guard !viewModel.isScrolling else { return }
                     if value.translation.height > 100 {
                         viewModel.didDismiss(byAction: .slide, direction: .down)
                     } else {
