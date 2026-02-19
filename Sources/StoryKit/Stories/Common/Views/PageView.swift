@@ -51,7 +51,7 @@ struct PageView: View {
                     }
             }
             if let buttonData = pageData.buttonData {
-                Button(action: pageData.buttonSelectionAction) {
+                Button(action: pageData.buttonAction) {
                     Text(buttonData.title)
                         .font(buttonData.font)
                         .frame(maxWidth: .infinity)
@@ -80,7 +80,7 @@ extension PageView {
         let duration: Double
         let contentType: ContentType
         let buttonData: StoryKit.Story.PageData.ButtonData?
-        let buttonSelectionAction: () -> Void
+        let buttonAction: () -> Void
     }
 }
 
@@ -88,17 +88,17 @@ extension PageView {
     let data = try! Data(contentsOf: .init(string: "https://m.media-amazon.com/images/I/71HvRxH2bgL._AC_UF1000,1000_QL80_.jpg")!)
     let image = UIImage(data: data)!
     return PageView(
-        pageData: .init(
+        pageData: PageView.Data(
             id: UUID().uuidString,
             duration: 10,
             contentType: .image(image),
-            buttonData: .init(
+            buttonData: StoryKit.Story.PageData.ButtonData(
                 titleColor: .black,
                 backgroundColor: .yellow,
                 title: "Button name",
-                link: .init(string: "https://apple.com")!
+                action: { }
             ),
-            buttonSelectionAction: {}
+            buttonAction: { }
         ),
         isPaused: .constant(false)
     )

@@ -212,10 +212,10 @@ private extension StoryViewModel {
                 self?.pagesData[index] = .failed(error ?? NSError(domain: "com.storykit", code: 404, userInfo: nil))
                 return
             }
-            let buttonSelectionAction = { [weak self] in
-                guard let self, let link = page.buttonData?.link else { return }
+            let buttonAction = { [weak self] in
+                guard let self, let action = page.buttonData?.action else { return }
                 StoryKit.configuration?.actions.storyPageDidSelectActionButton(story, page)
-                UIApplication.shared.open(link)
+                action()
             }
             switch page.contentType {
             case .image(let url):
@@ -225,7 +225,7 @@ private extension StoryViewModel {
                         duration: page.duration,
                         contentType: .image(image),
                         buttonData: page.buttonData,
-                        buttonSelectionAction: buttonSelectionAction
+                        buttonAction: buttonAction
                     ))
                 } else {
                     self?.errorsCountInARow += 1
@@ -237,7 +237,7 @@ private extension StoryViewModel {
                     duration: page.duration,
                     contentType: .video(url: localURL),
                     buttonData: page.buttonData,
-                    buttonSelectionAction: buttonSelectionAction
+                    buttonAction: buttonAction
                 ))
             }
         }
