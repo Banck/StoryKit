@@ -24,7 +24,7 @@ class StoryViewModel: ObservableObject {
     @Published var currentPageIndex: Int = 0 {
         didSet {
             updateTimerStatus()
-			calculateColors()
+            calculateColors()
         }
     }
     @Published var storyProgressSeconds: Double = 0
@@ -35,32 +35,32 @@ class StoryViewModel: ObservableObject {
     private var isHolded: Bool = false
     private var holdStartDate: Date?
     private var isOnTheScreen: Bool = false
-	
-	private let bgDetector = BackgroundDetector()
-	private var bgDetectorTask: Task<Void, Error>?
+
+    private let bgDetector = BackgroundDetector()
+    private var bgDetectorTask: Task<Void, Error>?
 
     @Published var isPagePaused: Bool = false
-	@Published var closeColor: Color = .white
-	@Published var progressColor: Color = .white
-	
-	var closeFrame: CGRect? {
-		didSet {
-			guard
-				let closeFrame,
-				closeFrame != oldValue
-			else { return }
-			calculateColors()
-		}
-	}
-	var progressFrame: CGRect? {
-		didSet {
-			guard
-				let progressFrame,
-				progressFrame != oldValue
-			else { return }
-			calculateColors()
-		}
-	}
+    @Published var closeColor: Color = .white
+    @Published var progressColor: Color = .white
+
+    var closeFrame: CGRect? {
+        didSet {
+            guard
+                let closeFrame,
+                closeFrame != oldValue
+            else { return }
+            calculateColors()
+        }
+    }
+    var progressFrame: CGRect? {
+        didSet {
+            guard
+                let progressFrame,
+                progressFrame != oldValue
+            else { return }
+            calculateColors()
+        }
+    }
 
     private var errorsCountInARow: Int = 0
 
@@ -169,39 +169,39 @@ class StoryViewModel: ObservableObject {
     func pageContentDidAppear() {
         pageShowStartDate = Date()
         updateTimerStatus()
-		calculateColors()
+        calculateColors()
     }
 }
 
 // MARK: - Private methods
 private extension StoryViewModel {
-	
-	func calculateColors() {
-		guard
-			let closeFrame,
-			let progressFrame,
-			let pageData = self.pagesData[currentPageIndex].value
-		else { return }
-		let viewSize = UIScreen.main.bounds.size
-		bgDetectorTask?.cancel()
-		bgDetectorTask = Task { @MainActor [weak self] in
-			let closeBrightness = await bgDetector.detect(
-				from: pageData.contentType,
-				viewSize: viewSize,
-				croppedFrame: closeFrame
-			)
-			try Task.checkCancellation()
-			let progressBrightness = await bgDetector.detect(
-				from: pageData.contentType,
-				viewSize: viewSize,
-				croppedFrame: progressFrame
-			)
-			try Task.checkCancellation()
-			guard let self else { return }
-			closeColor = closeBrightness <= 0.5 ? Color.white : Color.black
-			progressColor = progressBrightness <= 0.5 ? Color.white : Color.black
-		}
-	}
+
+    func calculateColors() {
+        guard
+            let closeFrame,
+            let progressFrame,
+            let pageData = self.pagesData[currentPageIndex].value
+        else { return }
+        let viewSize = UIScreen.main.bounds.size
+        bgDetectorTask?.cancel()
+        bgDetectorTask = Task { @MainActor [weak self] in
+            let closeBrightness = await self?.bgDetector.detect(
+                from: pageData.contentType,
+                viewSize: viewSize,
+                croppedFrame: closeFrame
+            )
+            try Task.checkCancellation()
+            let progressBrightness = await self?.bgDetector.detect(
+                from: pageData.contentType,
+                viewSize: viewSize,
+                croppedFrame: progressFrame
+            )
+            try Task.checkCancellation()
+            guard let self, let closeBrightness, let progressBrightness else { return }
+            closeColor = closeBrightness <= 0.5 ? Color.white : Color.black
+            progressColor = progressBrightness <= 0.5 ? Color.white : Color.black
+        }
+    }
 
     func preparePageData(at index: Int) {
         let page = story.pages[index]
@@ -218,7 +218,7 @@ private extension StoryViewModel {
                 action()
             }
             switch page.contentType {
-            case .image(let url):
+            case .image:
                 if let data = try? Data(contentsOf: localURL), let image = UIImage(data: data) {
                     self?.pagesData[index] = .loaded(.init(
                         id: page.id,
@@ -231,7 +231,7 @@ private extension StoryViewModel {
                     self?.errorsCountInARow += 1
                     self?.pagesData[index] = .failed(error ?? NSError(domain: "com.storykit", code: 404, userInfo: nil))
                 }
-            case .video(let url):
+            case .video:
                 self?.pagesData[index] = .loaded(.init(
                     id: page.id,
                     duration: page.duration,
@@ -279,11 +279,11 @@ private extension StoryViewModel {
 
     // MARK: - Timer
     func updateTimerStatus() {
-        if 
+        if
             let pagesData = pagesData[currentPageIndex].value,
-            pagesData.duration != 0 &&
-            isActive &&
-            !isHolded &&
+            pagesData.duration != 0,
+            isActive,
+            !isHolded,
             isOnTheScreen
         {
             resumeTimer()
@@ -340,7 +340,7 @@ private extension StoryViewModel {
         // this and .main.async needs to stop playing video on current(previous currenly) page
         timer?.isPaused = true
         isPagePaused = true
-        
+
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
             self.moveProgress(toPage: newPageIndex)
             self.currentPageIndex = Int(newPageIndex)

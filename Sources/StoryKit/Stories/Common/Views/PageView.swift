@@ -9,7 +9,7 @@ import AVKit
 
 struct PageView: View {
 
-    @Environment (\.scenePhase) private var scenePhase
+    @Environment(\.scenePhase) private var scenePhase
 
     let pageData: Data
     @State var avPlayer: AVPlayer = .init()

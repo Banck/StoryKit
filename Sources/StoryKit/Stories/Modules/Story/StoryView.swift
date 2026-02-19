@@ -115,7 +115,7 @@ struct StoryView: View {
     @ViewBuilder
     func progress() -> some View {
         HStack(spacing: 4) {
-            ForEach(viewModel.story.pages.indices) { index in
+            ForEach(Array(viewModel.story.pages.enumerated()), id: \.element.id) { index, _ in
 				ProgressView(
 					progress: viewModel.progress(forPageIndex: index),
 					color: viewModel.progressColor
