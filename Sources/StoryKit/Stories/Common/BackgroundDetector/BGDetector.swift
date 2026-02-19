@@ -52,7 +52,12 @@ struct BackgroundDetector: Sendable {
 	}
 
 	private func computeBrightness(from ciImage: CIImage, roi: CGRect) -> CGFloat {
-		let cropped = ciImage.cropped(to: roi)
+        var safeRoi = roi.integral
+        if safeRoi.width < 2 { safeRoi.size.width = 2 }
+        if safeRoi.height < 2 { safeRoi.size.height = 2 }
+
+        let cropped = ciImage.cropped(to: safeRoi)
+
 		avgFilter.inputImage = cropped
 		avgFilter.extent = cropped.extent
 
