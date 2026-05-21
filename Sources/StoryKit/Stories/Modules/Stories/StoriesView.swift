@@ -44,16 +44,16 @@ struct StoriesView: View {
                 .opacity(opacity)
         }
         .statusBarHidden(false)
-        .highPriorityGesture(
+        .simultaneousGesture(
             DragGesture(minimumDistance: 25)
                 .onChanged { value in
                     // enable only swipe to bottom when start dragging and is not scrolling ScrollView
-                    guard (value.translation.height >= 0 || viewModel.isDragging) && !viewModel.isScrolling else { return }
+                    guard (value.translation.height >= 10 || viewModel.isDragging) && !viewModel.isScrolling else { return }
                     viewModel.didChangeDragLocation()
                 }
                 .updating($dragTranslation) { value, state, transaction in
                     // enable only swipe to bottom when start dragging and is not scrolling ScrollView
-                    guard (value.translation.height >= 0 || viewModel.isDragging) && !viewModel.isScrolling else { return }
+                    guard (value.translation.height >= 10 || viewModel.isDragging) && !viewModel.isScrolling else { return }
                     state = value.translation
                 }
                 .onEnded { value in
@@ -88,7 +88,6 @@ struct StoriesView: View {
                             }()
                             let rate: CGFloat = -minX / proxy.size.width
                             let scale = (1 - rate * 0.1).clamp(0.8, 1)
-
                             StoryView(
                                 viewModel: viewModel.storiesViewModels[index],
                                 safeAreaInsets: geo.safeAreaInsets

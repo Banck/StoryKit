@@ -55,6 +55,7 @@ class StoriesViewModel: ObservableObject {
     }
 
     func didStartSlideStories() {
+        guard !isDragging else { return }
         isScrolling = true
         storiesViewModels.forEach { $0.isActive = false }
     }
@@ -67,6 +68,7 @@ class StoriesViewModel: ObservableObject {
     func didChangeDragLocation() {
         guard !isDragging else { return }
         isDragging = true
+        isScrolling = false
         storiesViewModels.forEach { $0.isActive = false }
     }
 
